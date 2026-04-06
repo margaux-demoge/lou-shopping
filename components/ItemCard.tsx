@@ -9,10 +9,7 @@ type Props = {
 }
 
 export default function ItemCard({ item, onDelete }: Props) {
-  const displayPrice =
-    item.price
-      ? `${item.price} ${item.currency === 'EUR' ? '€' : item.currency}`
-      : null
+  const displayPrice = item.price ? `${item.price} €` : null
 
   return (
     <div className="group relative break-inside-avoid mb-4 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer">
