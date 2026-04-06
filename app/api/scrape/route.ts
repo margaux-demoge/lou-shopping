@@ -40,18 +40,32 @@ function extractOGData(html: string, url: string) {
     getMeta('twitter:image:src') ||
     null
 
-  const rawCurrency =
-    getMeta('og:price:currency') ||
-    getMeta('product:price:currency') ||
-    null
-
-  // N'utilise le prix que si la devise est EUR (ou non précisée)
-  const isEur = !rawCurrency || ['EUR', 'euro', '€'].includes(rawCurrency.toUpperCase())
-  const price = isEur
-    ? getMeta('og:price:amount') || getMeta('product:price:amount') || getMeta('price') || null
-    : null
-
+  const rawCurrency = getMeta('og:price:currency') || getMeta('product:price:currency') || 'EUR'
+  const rawPrice = getMeta('og:price:amount') || getMeta('product:price:amount') || getMeta('price') || null
   const currency = '€'
+
+  let price: string | null = null
+  if (rawPrice) {
+    const numPrice = parseFloat(rawPrice.replace(',', '.'))
+    if (!isNaN(numPrice)) {
+      const normalized = rawCurrency.toUpperCase().trim()
+      if (normalized === 'EUR' || normalized === '€') {
+        price = numPrice.toFixed(2)
+      } else {
+        // Conversion vers EUR via API gratuite
+        try {
+          const rateRes = await fetch(`https://open.er-api.com/v6/latest/EUR`, { next: { revalidate: 3600 } })
+          const rateData = await rateRes.json()
+          const rate = rateData?.rates?.[normalized]
+          if (rate) {
+            price = (numPrice / rate).toFixed(2)
+          }
+        } catch {
+          // Si la conversion échoue, on n'affiche pas de prix plutôt qu'un prix faux
+        }
+      }
+    }
+  }
 
   let hostname = ''
   try {
