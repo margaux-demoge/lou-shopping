@@ -57,6 +57,9 @@ export default function Home() {
             <h1 className="text-2xl font-bold text-stone-800 tracking-tight">
               Lou fait ton shopping ☀️
             </h1>
+            <a href="/bookmarklet" className="text-xs text-amber-500 hover:underline">
+              Installer le bookmarklet →
+            </a>
             <p className="text-xs text-stone-400 mt-0.5">
               {items.length > 0
                 ? `${items.length} pièce${items.length > 1 ? 's' : ''} sélectionnée${items.length > 1 ? 's' : ''}`
