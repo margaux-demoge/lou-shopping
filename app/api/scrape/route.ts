@@ -49,19 +49,21 @@ function extractOGData(html: string, url: string) {
     const numPrice = parseFloat(rawPrice.replace(',', '.'))
     if (!isNaN(numPrice)) {
       const normalized = rawCurrency.toUpperCase().trim()
-      if (normalized === 'EUR' || normalized === '€') {
+      if (normalized === 'EUR' || normalized === '€' || normalized === '') {
         price = numPrice.toFixed(2)
       } else {
-        // Conversion vers EUR via API gratuite
         try {
-          const rateRes = await fetch(`https://open.er-api.com/v6/latest/EUR`, { next: { revalidate: 3600 } })
+          const rateRes = await fetch(
+            `https://api.frankfurter.app/latest?from=${normalized}&to=EUR`,
+            { signal: AbortSignal.timeout(3000) }
+          )
           const rateData = await rateRes.json()
-          const rate = rateData?.rates?.[normalized]
+          const rate = rateData?.rates?.EUR
           if (rate) {
-            price = (numPrice / rate).toFixed(2)
+            price = (numPrice * rate).toFixed(2)
           }
         } catch {
-          // Si la conversion échoue, on n'affiche pas de prix plutôt qu'un prix faux
+          // conversion impossible, prix masqué
         }
       }
     }
