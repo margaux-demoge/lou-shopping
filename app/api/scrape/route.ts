@@ -40,16 +40,18 @@ function extractOGData(html: string, url: string) {
     getMeta('twitter:image:src') ||
     null
 
-  const price =
-    getMeta('og:price:amount') ||
-    getMeta('product:price:amount') ||
-    getMeta('price') ||
-    null
-
-  const currency =
+  const rawCurrency =
     getMeta('og:price:currency') ||
     getMeta('product:price:currency') ||
-    '€'
+    null
+
+  // N'utilise le prix que si la devise est EUR (ou non précisée)
+  const isEur = !rawCurrency || ['EUR', 'euro', '€'].includes(rawCurrency.toUpperCase())
+  const price = isEur
+    ? getMeta('og:price:amount') || getMeta('product:price:amount') || getMeta('price') || null
+    : null
+
+  const currency = '€'
 
   let hostname = ''
   try {
