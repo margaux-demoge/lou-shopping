@@ -1,5 +1,7 @@
+'use client'
+
 export default function BookmarkletPage() {
-  const bookmarkletCode = `javascript:(function(){var t=document.querySelector('meta[property="og:title"]')?.content||document.title;var img=document.querySelector('meta[property="og:image:secure_url"]')?.content||document.querySelector('meta[property="og:image"]')?.content||'';var site=document.querySelector('meta[property="og:site_name"]')?.content||location.hostname.replace('www.','');var price='';var sel=['[class*="price"]:not([class*="original"]):not([class*="old"]):not([class*="strike"])','[itemprop="price"]','[data-price]','[class*="Price"]'];for(var s of sel){var el=document.querySelector(s);if(el){var txt=el.getAttribute('content')||el.textContent||'';var m=txt.match(/\\d[\\d\\s.,]*/);if(m){price=m[0].replace(/\\s/g,'').replace(',','.');break;}}}var p=new URLSearchParams({url:location.href,title:t,image:img,siteName:site,price:price});window.open('https://lou-shopping.vercel.app/add?'+p.toString(),'_blank');})();`
+  const bookmarkletCode = `javascript:(function(){var t=document.querySelector('meta[property="og:title"]')?.content||document.title;var img=document.querySelector('meta[property="og:image:secure_url"]')?.content||document.querySelector('meta[property="og:image"]')?.content||'';var site=document.querySelector('meta[property="og:site_name"]')?.content||location.hostname.replace('www.','');var price='';var sel=['[class*="price"]:not([class*="original"]):not([class*="old"]):not([class*="strike"])','[itemprop="price"]','[data-price]','[class*="Price"]'];for(var s of sel){var el=document.querySelector(s);if(el){var txt=el.getAttribute('content')||el.textContent||'';var m=txt.match(/\\d[\\d\\s.,]*/);if(m){price=m[0].replace(/\\s/g,'').replace(',','.');break;}}}location.href='https://lou-shopping.vercel.app/add?'+new URLSearchParams({url:location.href,title:t,image:img,siteName:site,price:price}).toString();})();`
 
   return (
     <main className="min-h-screen bg-[#FAFAF7] flex items-center justify-center px-4">
@@ -9,7 +11,6 @@ export default function BookmarkletPage() {
           Glisse ce bouton dans ta barre de favoris. Ensuite, sur n&apos;importe quelle page produit, clique dessus pour l&apos;ajouter au panier.
         </p>
 
-        {/* Le bookmarklet draggable */}
         <a
           href={bookmarkletCode}
           className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold text-lg px-8 py-4 rounded-2xl shadow-lg cursor-grab active:cursor-grabbing select-none transition-all hover:scale-105 hover:shadow-xl"
@@ -34,7 +35,7 @@ export default function BookmarkletPage() {
             </li>
             <li className="flex gap-3">
               <span className="text-amber-500 font-bold">3.</span>
-              Clique sur le favori — l&apos;article s&apos;ajoute automatiquement au panier ✨
+              Clique sur le favori — l&apos;article s&apos;ajoute automatiquement ✨
             </li>
           </ol>
         </div>
