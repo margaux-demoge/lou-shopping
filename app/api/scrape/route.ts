@@ -42,32 +42,6 @@ function extractOGData(html: string, url: string) {
 
   const rawCurrency = getMeta('og:price:currency') || getMeta('product:price:currency') || 'EUR'
   const rawPrice = getMeta('og:price:amount') || getMeta('product:price:amount') || getMeta('price') || null
-  const currency = '€'
-
-  let price: string | null = null
-  if (rawPrice) {
-    const numPrice = parseFloat(rawPrice.replace(',', '.'))
-    if (!isNaN(numPrice)) {
-      const normalized = rawCurrency.toUpperCase().trim()
-      if (normalized === 'EUR' || normalized === '€' || normalized === '') {
-        price = numPrice.toFixed(2)
-      } else {
-        try {
-          const rateRes = await fetch(
-            `https://api.frankfurter.app/latest?from=${normalized}&to=EUR`,
-            { signal: AbortSignal.timeout(3000) }
-          )
-          const rateData = await rateRes.json()
-          const rate = rateData?.rates?.EUR
-          if (rate) {
-            price = (numPrice * rate).toFixed(2)
-          }
-        } catch {
-          // conversion impossible, prix masqué
-        }
-      }
-    }
-  }
 
   let hostname = ''
   try {
@@ -78,7 +52,7 @@ function extractOGData(html: string, url: string) {
 
   const siteName = getMeta('og:site_name') || hostname
 
-  return { title: decodeHTMLEntities(title), image, price, currency, siteName }
+  return { title: decodeHTMLEntities(title), image, rawPrice, rawCurrency, siteName }
 }
 
 async function scrapeViaMicrolink(url: string) {
@@ -101,6 +75,24 @@ async function scrapeViaMicrolink(url: string) {
   }
 }
 
+async function convertToEur(rawPrice: string, rawCurrency: string): Promise<string | null> {
+  const numPrice = parseFloat(rawPrice.replace(',', '.'))
+  if (isNaN(numPrice)) return null
+  const normalized = rawCurrency.toUpperCase().trim()
+  if (['EUR', '€', ''].includes(normalized)) return numPrice.toFixed(2)
+  try {
+    const res = await fetch(
+      `https://api.frankfurter.app/latest?from=${normalized}&to=EUR`,
+      { signal: AbortSignal.timeout(4000) }
+    )
+    const data = await res.json()
+    const rate = data?.rates?.EUR
+    return rate ? (numPrice * rate).toFixed(2) : null
+  } catch {
+    return null
+  }
+}
+
 async function scrapeDirectly(url: string) {
   const response = await fetch(url, {
     headers: {
@@ -113,7 +105,9 @@ async function scrapeDirectly(url: string) {
   })
   if (!response.ok) throw new Error(`HTTP ${response.status}`)
   const html = await response.text()
-  return extractOGData(html, url)
+  const { rawPrice, rawCurrency, ...rest } = extractOGData(html, url)
+  const price = rawPrice ? await convertToEur(rawPrice, rawCurrency) : null
+  return { ...rest, price, currency: '€' }
 }
 
 export async function POST(req: NextRequest) {
